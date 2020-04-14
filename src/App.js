@@ -1,48 +1,42 @@
 import React, {Component} from 'react';
-import {Atk, AtkIncrease, DmgIncrease, BossAtk, PlayerAtk, SkillDmg, SkillHit, CritRate, CritAtk, CritDmg} from './Components/CalculatorItems';
+import {Atk, AtkIncrease, DmgIncrease, BossAtk, SkillDmg, SkillHit, CritRate, CritDmg, FinalDmg, SkillFinalDmg} from './Components/CalculatorItems';
 import Swal from 'sweetalert2';
 import {CalculateButton, MoreStatsButton, } from './Components/Buttons';
-import {DamageFormula, MoreStats, Notepad } from './Components/PopUps'
+import {DamageFormula, BossDamageFormula, MoreStats } from './Components/PopUps'
 import DamageChart from './Components/DamageChart';
 import Navbar from './Components/Navbar';
 import './App.css';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faCalculator, faTimes, faArrowRight, faCaretDown, faSave, faEdit, faSquareRootAlt} from '@fortawesome/free-solid-svg-icons'
 
-library.add(faCalculator, faTimes, faArrowRight, faCaretDown, faSave, faEdit, faSquareRootAlt )
-
-
-
+library.add(faCalculator, faTimes, faArrowRight, faCaretDown, faSave, faEdit, faSquareRootAlt)
 
 class App extends Component {
     constructor(props) {
         super(props);
-
         this.state = {  atk: '',
                         atkIncrease: '',
                         dmgIncrease: '',
                         bossAtk: '',
-                        playerAtk: '',
                         skillDmg: '',
                         skillHit: '',
                         critRate: '',
-                        critAtk: '',
                         critDmg: '',
+                        finalDmg: '',
+                        skillFinalDmg: '',
                         totalDmg: '',
                         totalCritDmg: '',
                         totalNonCritDmg: '',
                         totalBossDmg: '',
-                        totalPlayerDmg: '',
+                        totalBossCritDmg: '',
+                        totalBossNonCritDmg: '',
                         damageFormula: false,
+                        bossDamageFormula: false,
                         moreStats: false,
-                        notePad: false,
-                        
                       }
     }
 
-
     damageCalc = () => {
-
         const round = (num, places) => {
             var multiplier = Math.pow(10, places);
             return Math.round(num * multiplier) / multiplier;
@@ -50,43 +44,38 @@ class App extends Component {
 
         let atk = this.state.atk;
         let atkIncrease = this.state.atkIncrease;
-        let playerAtk = this.state.playerAtk;
-        let bossAtk = this.state.bossAtk;
         let dmgIncrease = this.state.dmgIncrease;
+        let bossAtk = this.state.bossAtk;
         let skillDmg = this.state.skillDmg;
         let skillHit = this.state.skillHit;
         let critRate = this.state.critRate;
-        let critAtk = this.state.critAtk;
         let critDmg = this.state.critDmg;
+        let finalDmg = this.state.finalDmg;
+        let skillFinalDmg = this.state.skillFinalDmg;
 
-        let totalDamageWithoutCrit = (atk) * (1+atkIncrease/100) * (1+dmgIncrease/100) * (skillDmg/100) * (skillHit);
-        let totalDamageWithCrit = (Number(atk) + Number(critAtk)) * (1+atkIncrease/100) * (1+(25+Number(dmgIncrease)+Number(critDmg))/100) * (skillDmg/100) * (skillHit);
+        let totalDamageWithoutCrit = (atk) * (skillDmg/100) * (1+dmgIncrease/100) * (1+(finalDmg/100)+(skillFinalDmg/100)) * (1+atkIncrease/100) * (skillHit);
+        let totalDamageWithCrit = (atk) * (skillDmg/100) * (1+dmgIncrease/100) * (1+(finalDmg/100)+(skillFinalDmg/100)) * (1+atkIncrease/100) * (1.2+critDmg/100) * (skillHit);
 
+        let totalAverageDamage = ((1 - critRate/100) * totalDamageWithoutCrit) + ((critRate/100) * totalDamageWithCrit);
         let totalCritDamagePerLine = totalDamageWithCrit / skillHit;
         let totalNonCritDamagePerLine = totalDamageWithoutCrit / skillHit;
 
-        let totalAverageDamage = ((1 - critRate/100) * totalDamageWithoutCrit) + ((critRate/100) * totalDamageWithCrit);
-
-        let totalBossDamageWithoutCrit = (atk) * (1+atkIncrease/100) * (1+(2.5*(bossAtk/100))) * (1+dmgIncrease/100) * (skillDmg/100) * (skillHit);
-        let totalBossDamageWithCrit = ((Number(atk) + Number(critAtk)) * (1+atkIncrease/100) * (1+(2.5*(bossAtk/100))) * (1+(25+Number(dmgIncrease)+Number(critDmg))/100) * (skillDmg/100) * (skillHit));
+        let totalBossDamageWithoutCrit = (atk) * (skillDmg/100) * (1+dmgIncrease/100) * (1+(finalDmg/100)+(skillFinalDmg/100)) * (1+(atkIncrease/100)+(skillDmg/100)*(bossAtk/100)) * (skillHit);
+        let totalBossDamageWithCrit = (atk) * (skillDmg/100) * (1+dmgIncrease/100) * (1+(finalDmg/100)+(skillFinalDmg/100)) * (1+(atkIncrease/100)+(skillDmg/100)*(bossAtk/100)) * (1.2+critDmg/100) * (skillHit);
 
         let totalAverageBossDamage = ((1 - critRate/100) * totalBossDamageWithoutCrit) + ((critRate/100) * totalBossDamageWithCrit);
-
-        let totalPlayerDamageWithoutCrit = (atk) * (1+atkIncrease/100) * (1+playerAtk/100) * (1+dmgIncrease/100) * (skillDmg/100) * (skillHit);
-        let totalPlayerDamageWithCrit = ((Number(atk) + Number(critAtk)) * (1+atkIncrease/100) * (1+playerAtk/100) * (1+(25+Number(dmgIncrease)+Number(critDmg))/100) * (skillDmg/100) * (skillHit));
-
-        let totalAveragePlayerDamage = ((1 - critRate/100) * totalPlayerDamageWithoutCrit) + ((critRate/100) * totalPlayerDamageWithCrit);
-
-        
+        let totalCritBossDamagePerLine = totalBossDamageWithCrit / skillHit;
+        let totalNonCritBossDamagePerLine = totalBossDamageWithoutCrit / skillHit;
 
         let totalDamageRound = round(totalAverageDamage,0);
-        let totalBossDamageRound = round(totalAverageBossDamage,0);
-        let totalPlayerDamageRound = round(totalAveragePlayerDamage,0);
         let totalCritDamageRound = round(totalCritDamagePerLine,0);
         let totalNonCritDamageRound = round(totalNonCritDamagePerLine,0);
 
+        let totalBossDamageRound = round(totalAverageBossDamage,0);
+        let totalBossCritDamageRound = round(totalCritBossDamagePerLine,0);
+        let totalBossNonCritDamageRound = round(totalNonCritBossDamagePerLine,0);
 
-        if (atk === "" || atkIncrease === "" || dmgIncrease ===  "" || bossAtk === '' || playerAtk === '' || bossAtk === '' || dmgIncrease === '' || skillDmg === '' || skillHit === '' || critRate === '' || critAtk === '' || critDmg === '') {
+        if (atk === "" || atkIncrease === "" || dmgIncrease ===  "" || bossAtk === '' || bossAtk === '' || dmgIncrease === '' || skillDmg === '' || skillHit === '' || critRate === '' || critDmg === '' || finalDmg === '' || skillFinalDmg === '') {
             return Swal("Please input all stats", "", "warning");
         }
 
@@ -95,14 +84,13 @@ class App extends Component {
         }
 
         this.setState({ totalDmg: totalDamageRound, 
-                        totalBossDmg: totalBossDamageRound,
-                        totalPlayerDmg: totalPlayerDamageRound,
                         totalCritDmg: totalCritDamageRound,
                         totalNonCritDmg: totalNonCritDamageRound,
-        
+                        totalBossDmg: totalBossDamageRound,
+                        totalBossCritDmg: totalBossCritDamageRound,
+                        totalBossNonCritDmg: totalBossNonCritDamageRound,
         })
-    
-}
+    }
 
     refreshPage = () => {
         window.location.reload();
@@ -118,13 +106,12 @@ class App extends Component {
         this.setState({damageFormula: !this.state.damageFormula})
     }
 
-    toggleMoreStats = () => {
-        this.setState({moreStats: !this.state.moreStats})
+    toggleBossDamageFormula = () => {
+        this.setState({bossDamageFormula: !this.state.bossDamageFormula})
     }
 
-    toggleNotepad = () => {
-        this.setState({notePad: !this.state.notePad})
-
+    toggleMoreStats = () => {
+        this.setState({moreStats: !this.state.moreStats})
     }
 
     resetButton = () => {
@@ -133,53 +120,59 @@ class App extends Component {
             atkIncrease: '',
             dmgIncrease: '',
             bossAtk: '',
-            playerAtk: '',
             skillDmg: '',
             skillHit: '',
             critRate: '',
-            critAtk: '',
             critDmg: '',
+            finalDmg: '',
+            skillFinalDmg: '',
             totalDmg: '',
             totalCritDmg: '',
             totalNonCritDmg: '',
             totalBossDmg: '',
-            totalPlayerDmg: '',
-    })
+            totalBossCritDmg: '',
+            totalBossNonCritDmg: '',
+        })
     }
 
-    
-
-    
-    
     render() {
         const show = (this.state.damageFormula) ? "show" : "" ;
         const hi = (this.state.moreStats) ? "show" : "" ;
-        const hey = (this.state.notePad) ? "show" : "";
         return (
             <div>
                 <div className="nowrap">
-                <Navbar />
+                    <Navbar />
                 </div>
-           
-
                 <div className="bg-washed-yellow mt2">
-                    
                 <div className="bg-light-yellow w-90 tc center rounded">
                 <div className="tc w-100 h-100 p-2">
-
-                        <MoreStatsButton toggleMoreStats={this.toggleMoreStats} toggleDamageFormula={this.toggleDamageFormula} toggleNotepad={this.toggleNotepad}/>
+                    <MoreStatsButton toggleMoreStats={this.toggleMoreStats} toggleDamageFormula={this.toggleDamageFormula}/>
                     <div className={"collapse navbar-collapse " + show}>
-                            <DamageFormula 
-                                atk={this.state.atk} 
-                                critRate={this.state.critRate} 
-                                critAtk={this.state.critAtk} 
-                                atkIncrease={this.state.atkIncrease} 
+                            <DamageFormula
+                                atk={this.state.atk}
+                                atkIncrease={this.state.atkIncrease}
+                                dmgIncrease={this.state.dmgIncrease}
                                 bossAtk={this.state.bossAtk}
-                                playerAtk={this.state.playerAtk}
-                                dmgIncrease={this.state.dmgIncrease} 
-                                critDmg={this.state.critDmg} 
-                                skillDmg={this.state.skillDmg} 
+                                skillDmg={this.state.skillDmg}
                                 skillHit={this.state.skillHit}
+                                critRate={this.state.critRate}
+                                critDmg={this.state.critDmg}
+                                finalDmg={this.state.finalDmg}
+                                skillFinalDmg={this.state.skillFinalDmg} 
+                            />
+                    </div>
+                    <div className={"collapse navbar-collapse " + show}>
+                            <BossDamageFormula
+                                atk={this.state.atk}
+                                atkIncrease={this.state.atkIncrease}
+                                dmgIncrease={this.state.dmgIncrease}
+                                bossAtk={this.state.bossAtk}
+                                skillDmg={this.state.skillDmg}
+                                skillHit={this.state.skillHit}
+                                critRate={this.state.critRate}
+                                critDmg={this.state.critDmg}
+                                finalDmg={this.state.finalDmg}
+                                skillFinalDmg={this.state.skillFinalDmg} 
                             />
                     </div>
                 </div>
@@ -191,19 +184,11 @@ class App extends Component {
                         />
                         <div className={"collapse navbar-collapse " + hi}>
                         <MoreStats 
-                                totalBossDmg={this.state.totalBossDmg}
-                                totalPlayerDmg={this.state.totalPlayerDmg}
-                                totalNonCritDmgRed={this.state.totalNonCritDmgRed}
-                                totalCritDmgRed={this.state.totalCritDmgRed}
-                                totalNonCritDmgGray={this.state.totalNonCritDmgGray}
-                                totalCritDmgGray={this.state.totalCritDmgGray}
-                                totalDmgGray={this.state.totalDmgGray}
-                                totalDmgRed={this.state.totalDmgRed}
-                            />
+                            totalBossDmg={this.state.totalBossDmg}
+                            totalBossNonCritDmg={this.state.totalBossNonCritDmg}
+                            totalBossCritDmg={this.state.totalBossCritDmg}
+                        />
                         </div>
-                    </div>
-                    <div className={"collapse navbar-collapse " + hey}>
-                    <Notepad />
                     </div>
                     <hr />
                 <form className="form-group m-2 p-2" onKeyPress={this._handleKeyPress}>
@@ -213,18 +198,17 @@ class App extends Component {
                             <AtkIncrease onValueChange={atkIncrease => this.setState({ atkIncrease })}/>
                             <DmgIncrease onValueChange={dmgIncrease => this.setState({ dmgIncrease })}/>
                             <BossAtk onValueChange={bossAtk => this.setState({ bossAtk })}/>
-                            <PlayerAtk onValueChange={playerAtk => this.setState({ playerAtk })}/>
+                            <FinalDmg onValueChange={finalDmg => this.setState({ finalDmg })}/>
                         </div>
                         <div className="col col-lg-3 text-center">
                             <SkillDmg onValueChange={skillDmg => this.setState({ skillDmg })}/>
                             <SkillHit onValueChange={skillHit => this.setState({ skillHit })}/>
                             <CritRate onValueChange={critRate => this.setState({ critRate })}/>
-                            <CritAtk onValueChange={critAtk => this.setState({ critAtk })}/>
                             <CritDmg onValueChange={critDmg => this.setState({ critDmg })}/>
+                            <SkillFinalDmg onValueChange={skillFinalDmg => this.setState({ skillFinalDmg })}/>
                         </div>
                     </div>
                     <hr />
-                
                     <div className="tc">
                         <CalculateButton damageCalc={this.damageCalc}/>
                     </div>
@@ -235,6 +219,5 @@ class App extends Component {
         )    
     }
 }
-
 
 export default App;

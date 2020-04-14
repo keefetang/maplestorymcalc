@@ -13,8 +13,8 @@ class CalculateButton extends Component {
                 Calculate
                 </button>
             </div>
-            )
-        }
+        )
+    }
 }
 
 class SaveButton extends Component {
@@ -51,20 +51,11 @@ class MoreStatsButton extends Component {
                     onClick={this.props.toggleMoreStats}
                 >
                 <FontAwesomeIcon icon="caret-down" /> {" "}
-                More Stats 
-            </button>
-            <button 
-                className="btn btn-warning ba bw-3 b--black rounded ma1"
-                type="button"
-                onClick={this.props.toggleNotepad}
-                >
-                <FontAwesomeIcon icon="edit" /> {" "}
-                Notepad
+                Boss Damage 
                 </button>
             </div>
         )
     }
 }
-    
 
 export { CalculateButton, SaveButton, MoreStatsButton, } 
